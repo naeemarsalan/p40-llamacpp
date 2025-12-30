@@ -28,17 +28,23 @@ RUN cmake -B build \
     -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath-link,/usr/local/cuda/lib64/stubs" \
     && cmake --build build --config Release --target llama-server llama-cli -j$(nproc)
 
-# --- Stage 2: Runtime Stage (Safe for P40 Deployment) ---
+# --- Stage 2: Runtime Stage ---
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
-RUN apt-get update && apt-get install -y libcurl4 && rm -rf /var/lib/apt/lists/*
+# Install runtime dependencies: 
+# 1. libcurl4: for model downloading
+# 2. libgomp1: for OpenMP multi-threading (FIXES YOUR ERROR)
+RUN apt-get update && apt-get install -y \
+    libcurl4 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy compiled binaries
+# Copy compiled binaries from builder
 COPY --from=builder /app/build/bin/ /app/bin/
 
-# Set paths so 'llama-server' works out of the box
+# Set paths
 ENV PATH="/app/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/app/bin:${LD_LIBRARY_PATH}"
 
