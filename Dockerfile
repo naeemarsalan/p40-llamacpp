@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 RUN git clone https://github.com/ggml-org/llama.cpp.git .
-
+RUN git checkout 56b4795842d852152222ca7a2d4304008facf1b9
 # THE "SMOKING GUN" FIX:
 # 1. Create the versioned symlink the linker is specifically crying for
 # 2. Add it to the environment so the compiler sees it immediately
